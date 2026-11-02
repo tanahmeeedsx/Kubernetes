@@ -276,3 +276,146 @@ Managed services reduce the need to operate the Kubernetes control plane directl
 ---
 
 **Personal learning note:** This report records my Day 01 learning and practice. It is not official Kubernetes documentation.
+
+
+---
+
+# Day 02 - Kubernetes Learning Report
+
+Date: November 2, 2026  
+Focus: Kind installation, cluster and node management, kubectl, YAML manifests, and basic port concepts  
+Environment: Local Kind Kubernetes cluster
+
+## 1. Learning Objective
+
+The objective of this session was to set up Kind, practice basic cluster and node management, understand kubectl, and learn how Kubernetes resources can be created using commands or YAML configuration files.
+
+## 2. Kind Installation and Cluster Setup
+
+Kind (Kubernetes IN Docker) runs local Kubernetes clusters using Docker containers as nodes. I installed Kind and practiced creating and inspecting local clusters.
+
+I also explored multi-node cluster configuration, including a setup with 1 control-plane node and 3 worker nodes defined through a Kind configuration file.
+
+Commands for revision:
+
+```bash
+# Create a default Kind cluster
+kind create cluster
+
+# Create a cluster from a configuration file
+kind create cluster --config kind-config.yml
+
+# List Kind clusters
+kind get clusters
+
+# List nodes in the current Kind cluster
+kind get nodes
+
+# Check Kubernetes nodes
+kubectl get nodes -o wide
+
+# Check cluster information
+kubectl cluster-info
+```
+
+## 3. kubectl Basics
+
+`kubectl` is the command-line tool used to communicate with a Kubernetes cluster through the Kubernetes API.
+
+I practiced using kubectl to inspect cluster status and manage resources.
+
+```bash
+# Check the active context
+kubectl config current-context
+
+# List nodes
+kubectl get nodes
+
+# List namespaces
+kubectl get namespaces
+
+# List Pods
+kubectl get pods
+
+# List Deployments
+kubectl get deployments
+
+# List Services
+kubectl get services
+```
+
+## 4. YAML, JSON, and Resource Management Approaches
+
+I learned that Kubernetes resources can be managed using two approaches:
+
+- Imperative: run a direct kubectl command to perform an action.
+- Declarative: describe the desired state in a YAML or JSON file and apply the manifest.
+
+Examples:
+
+```bash
+# Imperative approach
+kubectl create namespace demo
+
+# Declarative approach
+kubectl apply -f namespace.yaml
+```
+
+I explored the purpose and basic structure of Kind configuration, Namespace, Pod, Deployment, and Service YAML files. This was an introductory overview rather than detailed study of every manifest field.
+
+## 5. Namespace and Service
+
+A Namespace provides logical separation for Kubernetes resources within a cluster. I practiced creating and checking namespaces through both commands and YAML manifests.
+
+A Service provides a stable access point for reaching matching Pods. This helps applications remain accessible even when Pods are replaced and their individual IP addresses change.
+
+## 6. Basic Port Concepts
+
+I explored the purpose of the following port settings:
+
+| Port | Basic meaning |
+|---|---|
+| containerPort | The port the application container is expected to listen on; declaring it does not publish the port by itself. |
+| port | The port exposed by a Kubernetes Service. |
+| targetPort | The destination port on the selected Pod that receives Service traffic. |
+| hostPort | An optional mapping from a node's port to a Pod's port. |
+
+A Service can expose more than one port. For the initial exercises, I focused on understanding a basic single-port Service and how its port forwards traffic to the target port.
+
+## 7. Practical Learning Summary
+
+During this session I:
+
+1. Installed Kind and practiced running it.
+2. Explored creating and managing local Kind clusters.
+3. Practiced cluster and node status checks.
+4. Explored a multi-node cluster configuration with 1 control-plane node and 3 worker nodes.
+5. Practiced basic kubectl commands.
+6. Compared imperative commands with declarative YAML/JSON manifests.
+7. Reviewed the purpose of Kind configuration, Namespace, Pod, Deployment, and Service YAML files.
+8. Practiced creating and inspecting namespaces.
+9. Learned the basic role of a Service as a stable access point for Pods.
+10. Explored containerPort, Service port, targetPort, and hostPort.
+
+## 8. Key Takeaways
+
+- Kind runs local Kubernetes clusters using Docker container nodes.
+- kubectl is the command-line interface for communicating with Kubernetes.
+- Imperative commands and declarative manifests are two ways to manage resources.
+- YAML and JSON files describe Kubernetes resource configuration.
+- Namespace logically separates resources.
+- Service provides a stable access point to matching Pods.
+- containerPort, port, targetPort, and hostPort represent different port concepts.
+
+This session focused on basic understanding and hands-on familiarity. Detailed YAML configuration, Service networking, and advanced resource behavior will be explored in later sessions.
+
+## 9. Next Learning Plan
+
+- [ ] Study Pods and Deployments in more detail
+- [ ] Explore Labels and Selectors
+- [ ] Learn ReplicaSets
+- [ ] Study Services and service types
+- [ ] Explore ConfigMaps and Secrets
+- [ ] Practice resource requests and limits
+- [ ] Learn volumes and persistent storage
+- [ ] Explore Ingress and networking
