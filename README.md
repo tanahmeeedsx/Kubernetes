@@ -25,12 +25,62 @@
 
 - Understood what Kubernetes is and why container orchestration is needed.
 - Explored automated scheduling, self-healing, scaling, and workload management.
-- Learned the high-level history of Kubernetes, including Google's Borg and Omega systems.
+- Learned the high-level history of Kubernetes, including Google’s Borg and Omega systems.
 - Compared physical server, virtual machine, container, and Kubernetes-based deployment models.
 - Studied cluster architecture, control plane components, worker nodes, and Pods.
 - Learned about Minikube, kind, and kubeadm.
 - Explored managed Kubernetes services: Amazon EKS, Google GKE, and Azure AKS.
 - Installed Minikube and practiced running an Nginx workload in a local cluster.
+
+### Day 01 - Commands Practiced
+
+Minikube cluster management:
+
+```bash
+# Check Minikube status
+minikube status
+
+# List Minikube profiles
+minikube profile list
+
+# View Minikube configuration
+minikube config view
+
+# Start the local cluster
+minikube start
+```
+
+Kubernetes workload and node inspection:
+
+```bash
+# List nodes with additional details
+kubectl get nodes -o wide
+
+# Run an Nginx Pod
+kubectl run mynginx --image=nginx:latest
+
+# List Pods
+kubectl get pods
+
+# Check the container runtime version reported by the node
+kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.containerRuntimeVersion}'
+
+# Inspect Minikube node runtime information
+kubectl describe node minikube | grep -i "Container Runtime"
+```
+
+Container runtime inspection (from inside the Minikube node):
+
+```bash
+# Display runtime information
+crictl info
+
+# List containers
+crictl ps
+
+# List container images
+crictl images
+```
 
 ## Day 02 - Learning Summary
 
@@ -45,6 +95,88 @@
 - Practiced checking cluster information, nodes, namespaces, and services through kubectl.
 
 These were introductory, hands-on exercises. The goal was to understand the purpose of the commands and manifests before moving into their detailed configuration and networking behavior.
+
+### Day 02 - Commands Practiced
+
+Kind installation and cluster setup:
+
+```bash
+# Run the installer script
+./installer.sh
+
+# Create a named multi-node Kind cluster from a configuration file
+kind create cluster --config=kind-config.yml --name=my-cluster
+
+# Create a Kind cluster from a configuration file
+kind create cluster --config kind-config.yml
+
+# List Kind clusters
+kind get clusters
+
+# List cluster nodes
+kind get nodes
+```
+
+Cluster and namespace inspection:
+
+```bash
+# Check nodes
+kubectl get nodes
+
+# Get cluster information for the named Kind context
+kubectl cluster-info --context kind-my-cluster
+
+# List namespaces
+kubectl get namespace
+
+# Create a namespace imperatively
+kubectl create namespace tomal
+
+# List namespaces again
+kubectl get namespaces
+```
+
+Apply YAML manifests and inspect workloads:
+
+```bash
+# Create or update a Namespace from YAML
+kubectl apply -f namespace.yml
+
+# Create or update a Deployment from YAML
+kubectl apply -f deployment.yml
+
+# List Pods in the nginx namespace
+kubectl get pods -n nginx
+
+# Describe a Pod in the nginx namespace
+kubectl describe pod <pod-name> -n nginx
+```
+
+Persistent volume and storage inspection:
+
+```bash
+# List PVCs in the nginx namespace
+kubectl get pvc -n nginx
+
+# List PersistentVolumes
+kubectl get pv
+
+# List StorageClasses
+kubectl get storageclass
+
+# Edit the PVC manifest
+nano pvc.yaml
+
+# Apply the PVC manifest
+kubectl apply -f pvc.yaml
+```
+
+Docker image inspection:
+
+```bash
+# List locally available Docker images
+docker images
+```
 
 ---
 
