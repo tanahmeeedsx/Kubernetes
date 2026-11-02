@@ -273,3 +273,121 @@ The cloud provider manages important parts of the Kubernetes control plane. User
 - [Minikube Documentation](https://minikube.sigs.k8s.io/docs/)
 - [kind Documentation](https://kind.sigs.k8s.io/)
 - [kubeadm Documentation](https://kubernetes.io/docs/reference/setup-tools/kubeadm/)
+
+
+---
+
+# Day 02 - Kind, kubectl, and YAML Basics
+
+Date: November 2, 2026
+
+## 1. Kind Setup
+
+Kind (Kubernetes IN Docker) runs local Kubernetes clusters using Docker containers as cluster nodes. It is useful for local learning, development, and testing.
+
+During this session I installed Kind and practiced creating and managing local clusters.
+
+## 2. Cluster and Node Management
+
+I explored how to create a basic Kind cluster and how to define a multi-node cluster through a Kind configuration file. I practiced a configuration with 1 control-plane node and 3 worker nodes.
+
+Useful commands for revision:
+
+```bash
+# Create a default cluster
+kind create cluster
+
+# Create a cluster from a configuration file
+kind create cluster --config kind-config.yml
+
+# List Kind clusters
+kind get clusters
+
+# List nodes in the current Kind cluster
+kind get nodes
+
+# Check Kubernetes nodes
+kubectl get nodes -o wide
+
+# Show cluster information
+kubectl cluster-info
+```
+
+## 3. kubectl
+
+`kubectl` is the Kubernetes command-line tool. It communicates with the Kubernetes API server and is used to create, inspect, update, and delete Kubernetes resources.
+
+Examples:
+
+```bash
+# Check the current context
+kubectl config current-context
+
+# List namespaces
+kubectl get namespaces
+
+# List Pods
+kubectl get pods
+
+# List Deployments
+kubectl get deployments
+
+# List Services
+kubectl get services
+```
+
+## 4. YAML and JSON Configuration
+
+Kubernetes resources can be managed in two common ways:
+
+- Imperative approach: I tell Kubernetes what action to perform using a command.
+- Declarative approach: I describe the desired resource state in a YAML or JSON manifest and apply that file.
+
+Example:
+
+```bash
+# Imperative: create a namespace with a command
+kubectl create namespace demo
+
+# Declarative: create or update resources from a manifest
+kubectl apply -f manifest.yaml
+```
+
+I explored the purpose and basic structure of these configuration files:
+
+- kind cluster configuration
+- Namespace YAML
+- Pod YAML
+- Deployment YAML
+- Service YAML
+
+## 5. Namespace and Service Basics
+
+A Namespace logically separates resources inside a Kubernetes cluster. I practiced creating and inspecting namespaces using commands and YAML manifests.
+
+A Service provides a stable access point for reaching a group of matching Pods. This is useful because Pods can be replaced and their individual IP addresses can change.
+
+A Service can define one or more ports. Its `port` is the port exposed by the Service, while `targetPort` identifies the port on the selected Pod/container that receives the traffic.
+
+## 6. Port Concepts
+
+I explored these basic port terms:
+
+- `containerPort`: documents the port the containerized application is expected to use; declaring it does not by itself publish the port outside the Pod.
+- `targetPort`: the destination port on the selected Pod that a Service forwards traffic to.
+- `port`: the port exposed by the Service inside the cluster.
+- `hostPort`: optionally maps a port on the node to a port on the Pod.
+
+These are different settings and should not be treated as interchangeable. Actual external access also depends on the Service type and cluster networking configuration.
+
+## 7. Key Takeaways
+
+- Kind can create local Kubernetes clusters using Docker containers as nodes.
+- A Kind configuration file can define a multi-node cluster.
+- kubectl is the command-line tool for managing Kubernetes resources.
+- Kubernetes resources can be managed imperatively with commands or declaratively with YAML/JSON manifests.
+- Namespace provides logical separation for resources.
+- Service provides a stable access point for Pods.
+- Service `port`, `targetPort`, container `containerPort`, and `hostPort` have different roles.
+
+These were introductory exercises. I focused on understanding what the tools and resource files do before studying their detailed configuration and networking behavior.
