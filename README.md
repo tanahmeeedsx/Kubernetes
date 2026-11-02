@@ -5,13 +5,13 @@
 <h1 align="center">Kubernetes</h1>
 
 <p align="center">
-  <strong>Fundamentals • Architecture • Minikube • Hands-on Learning</strong>
+  <strong>Fundamentals • Architecture • Minikube • Kind • Hands-on Learning</strong>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Focus-Container%20Orchestration-326CE5?style=flat-square" alt="Focus: Container Orchestration" />
   <img src="https://img.shields.io/badge/Environment-Local%20Lab-2E8B57?style=flat-square" alt="Environment: Local Lab" />
-  <img src="https://img.shields.io/badge/Progress-Day%2001-6A5ACD?style=flat-square" alt="Progress: Day 01" />
+  <img src="https://img.shields.io/badge/Progress-Day%2002-6A5ACD?style=flat-square" alt="Progress: Day 02" />
 </p>
 
 ---
@@ -27,6 +27,7 @@ I use this repository to keep my study notes, terminal commands, architecture di
 | Day | Topics | Status |
 |---|---|---|
 | Day 01 | Fundamentals, architecture, deployment models, Minikube installation, and Nginx Pod practice | Completed |
+| Day 02 | Kind setup, cluster and node management, kubectl, YAML manifests, imperative and declarative approaches, namespaces, and service ports | Completed |
 
 ## Technology Stack
 
@@ -34,11 +35,11 @@ I use this repository to keep my study notes, terminal commands, architecture di
 |---|---|
 | Containerization | Docker |
 | Container Orchestration | Kubernetes |
-| Local Kubernetes Environment | Minikube |
+| Local Kubernetes Environment | Minikube, Kind |
 | Kubernetes CLI | kubectl |
 | Container Runtime Inspection | crictl |
 | Workload Example | Nginx |
-| Configuration | YAML |
+| Configuration | YAML, JSON |
 | Documentation | Markdown, Mermaid |
 | Version Control | Git and GitHub |
 
@@ -99,6 +100,20 @@ For the full study notes, see [Day 01 Fundamentals](docs/day-01-fundamentals.md)
 
 For a structured overview of the day's learning, architecture, and YAML example, see [Day 01 Learning Report](docs/day-01-learning-report.md).
 
+## Day 02 - Learning Summary
+
+- Installed Kind and explored how it creates local Kubernetes clusters using Docker containers as nodes.
+- Learned the basic commands for creating, listing, and checking the status of Kind clusters and nodes.
+- Explored kubectl as the command-line tool for communicating with and managing Kubernetes clusters.
+- Practiced working with YAML configuration files and learned that Kubernetes resources can be managed through both imperative commands and declarative manifests.
+- Explored the purpose and basic structure of Kind cluster configuration, Namespace, Pod, Deployment, and Service YAML files.
+- Created and inspected Kubernetes namespaces using both kubectl commands and YAML manifests.
+- Learned the basic purpose of a Service: providing a stable access point to reach matching Pods.
+- Explored basic port concepts, including containerPort, targetPort, and hostPort, and how ports connect traffic to an application.
+- Practiced checking cluster information, nodes, namespaces, and services through kubectl.
+
+These were introductory, hands-on exercises. The goal was to understand the purpose of the commands and manifests before moving into their detailed configuration and networking behavior.
+
 ## Useful Commands
 
 ### Minikube
@@ -114,9 +129,34 @@ minikube profile list
 minikube start
 ```
 
+### Kind
+
+```bash
+# Create a default Kind cluster
+kind create cluster
+
+# Create a cluster using a configuration file
+kind create cluster --config kind-config.yml
+
+# List Kind clusters
+kind get clusters
+
+# List nodes in the current Kind cluster
+kind get nodes
+
+# Delete a Kind cluster
+kind delete cluster
+```
+
 ### kubectl
 
 ```bash
+# Check the current cluster context
+kubectl config current-context
+
+# Display cluster information
+kubectl cluster-info
+
 # List cluster nodes
 kubectl get nodes -o wide
 
@@ -126,11 +166,20 @@ kubectl get pods
 # List Pods across all namespaces
 kubectl get pods -A
 
-# Run an example Nginx Pod
-kubectl run nginx --image=nginx
+# Create a namespace imperatively
+kubectl create namespace nginx
 
-# Check Pod status
-kubectl get pods
+# List namespaces
+kubectl get namespaces
+
+# Create a Service for an existing Deployment
+kubectl expose deployment nginx --port=80 --type=ClusterIP
+
+# List Services
+kubectl get services
+
+# Apply a declarative YAML manifest
+kubectl apply -f manifest.yaml
 ```
 
 ### Container Runtime Inspection
@@ -149,11 +198,11 @@ crictl ps
 crictl images
 ```
 
-> **Runtime note:** `docker ps` lists containers managed by the Docker Engine selected by the Docker CLI. A Minikube node may use containerd internally, in which case `crictl` is useful for inspecting Kubernetes workload containers from inside the node. The Minikube driver and the node's container runtime are separate settings.
+> Runtime note: `docker ps` lists containers managed by the Docker Engine selected by the Docker CLI. A Minikube node may use containerd internally, in which case `crictl` is useful for inspecting Kubernetes workload containers from inside the node. The Minikube driver and the node's container runtime are separate settings.
 
 ## Example Kubernetes YAML
 
-The following is a sample Deployment manifest for learning. It is an example configuration, not a claim that this exact manifest was applied during Day 01.
+The following is a sample Deployment manifest for learning. It is an example configuration, not a claim that this exact manifest was applied during the learning sessions.
 
 ```yaml
 apiVersion: apps/v1
@@ -220,6 +269,7 @@ k8s-fundamentals/
 - [Kubernetes Concepts](https://kubernetes.io/docs/concepts/)
 - [Minikube Documentation](https://minikube.sigs.k8s.io/docs/)
 - [kind Documentation](https://kind.sigs.k8s.io/)
+- [kubectl Documentation](https://kubernetes.io/docs/reference/kubectl/)
 - [kubeadm Documentation](https://kubernetes.io/docs/reference/setup-tools/kubeadm/)
 
 ---
