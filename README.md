@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Progress-Day%2002-6A5ACD?style=flat-square" alt="Progress: Day 02" />
+  <img src="https://img.shields.io/badge/Progress-Day%2003-6A5ACD?style=flat-square" alt="Progress: Day 03" />
 </p>
 
 ---
@@ -20,6 +20,7 @@
 |---|---|---|
 | Day 01 | Kubernetes fundamentals, architecture, deployment models, Minikube installation, and Nginx Pod practice | Completed |
 | Day 02 | Kind setup, cluster and node management, kubectl, YAML manifests, imperative and declarative approaches, namespaces, and service ports | Completed |
+| Day 03 | Minikube command revision, Minikube vs Kind, imperative and declarative workflows, YAML manifests, and Kubernetes workload resources | Completed |
 
 ## Day 01 - Learning Summary
 
@@ -177,6 +178,106 @@ Docker image inspection:
 # List locally available Docker images
 docker images
 ```
+
+## Day 03 - Learning Summary
+
+- Revised essential Minikube commands for starting, stopping, pausing, deleting, and inspecting a local Kubernetes cluster.
+- Explored Minikube version checks, dashboard, IP, tunnel, node management, logs, services, and Ingress.
+- Compared Minikube and Kind, focusing on their similarities, differences, and local cluster management workflows.
+- Learned how a Kind cluster can be created from a YAML configuration file using `kind create cluster --config`.
+- Practiced imperative commands to create and manage Kubernetes resources directly through the CLI.
+- Learned the declarative workflow for managing Kubernetes resources through YAML manifests using `kubectl apply -f`.
+- Explored the purpose and structure of around 13 Kubernetes YAML configuration and resource files.
+- Reviewed Namespace, Pod, Deployment, ReplicaSet, Service, Job, CronJob, DaemonSet, PersistentVolume, PersistentVolumeClaim, Ingress, and Dashboard access configuration.
+- Applied Namespace, CronJob, and DaemonSet manifests and inspected the resulting Kubernetes resources.
+- Practiced checking namespaces, CronJobs, DaemonSets, Pods, and Pod placement across nodes.
+- Learned that not every YAML file is a Kubernetes resource manifest: Kind cluster configuration is passed to the Kind CLI, while Kubernetes resource manifests are generally applied with kubectl.
+
+### Day 03 - Commands Practiced
+
+Minikube cluster management:
+
+```bash
+# Check Minikube version
+minikube version
+
+# Start, stop, pause, or delete a Minikube cluster
+minikube start
+minikube stop
+minikube pause
+minikube delete
+
+# Open the Kubernetes Dashboard
+minikube dashboard
+
+# Get the Minikube IP address
+minikube ip
+
+# Start a tunnel for LoadBalancer services
+minikube tunnel
+
+# List Minikube nodes
+minikube node list
+
+# Add or delete a Minikube node
+minikube node add
+minikube node delete <node-name>
+
+# View Minikube logs
+minikube logs
+
+# Access a Service
+minikube service <service-name>
+
+# Enable the Ingress addon
+minikube addons enable ingress
+
+# List Minikube profiles
+minikube profile list
+```
+
+Kind cluster configuration:
+
+```bash
+# Create a Kind cluster from its configuration file
+kind create cluster --config kind-config.yml
+
+# List Kind clusters
+kind get clusters
+
+# List Kind nodes
+kind get nodes
+```
+
+Imperative and declarative resource management:
+
+```bash
+# Create a Namespace imperatively
+kubectl create namespace nginx
+
+# Apply a Kubernetes resource manifest declaratively
+kubectl apply -f namespace.yml
+
+# Inspect namespaces
+kubectl get namespaces
+
+# Inspect CronJobs across all namespaces
+kubectl get cronjobs -A
+
+# Inspect DaemonSets across all namespaces
+kubectl get daemonsets -A
+
+# Inspect Pods with node placement
+kubectl get pods -A -o wide
+
+# Delete a resource using its manifest
+kubectl delete -f namespace.yml
+```
+
+Important distinction:
+
+- Kind cluster configuration: `kind create cluster --config kind-config.yml`
+- Kubernetes resource manifests: `kubectl apply -f filename.yml`
 
 ---
 
