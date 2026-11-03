@@ -83,6 +83,12 @@ crictl ps
 crictl images
 ```
 
+
+### Problems Faced & Solutions
+
+- **Challenge:** Understanding how the control plane, worker nodes, and Pods work together.
+- **Solution:** Reviewed the Kubernetes architecture and deployment models, then practiced running an Nginx Pod on Minikube.
+
 ## Day 02 - Learning Summary
 
 - Installed Kind and explored how it creates local Kubernetes clusters using Docker containers as nodes.
@@ -178,6 +184,12 @@ Docker image inspection:
 # List locally available Docker images
 docker images
 ```
+
+
+### Problems Faced & Solutions
+
+- **Challenge:** Understanding how Kind cluster configuration, Kubernetes YAML resources, namespaces, and service ports fit into the workflow.
+- **Solution:** Practiced creating and inspecting Kind clusters, applying Namespace/Deployment manifests, and checking resources with kubectl.
 
 ## Day 03 - Learning Summary
 
@@ -278,6 +290,11 @@ Important distinction:
 
 - Kind cluster configuration: `kind create cluster --config kind-config.yml`
 - Kubernetes resource manifests: `kubectl apply -f filename.yml`
+
+### Problems Faced & Solutions
+
+- **Challenge:** Confusing a Kind cluster configuration YAML with a Kubernetes resource manifest.
+- **Solution:** Clarified that Kind configuration is used with `kind create cluster --config`, while Kubernetes resources are managed with `kubectl apply -f`.
 
 ---
 
