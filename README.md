@@ -33,7 +33,7 @@
 - Explored managed Kubernetes services: Amazon EKS, Google GKE, and Azure AKS.
 - Installed Minikube and practiced running an Nginx workload in a local cluster.
 
-### Day 01 - Commands Practiced
+### Commands Practiced
 
 Minikube cluster management:
 
@@ -97,7 +97,7 @@ crictl images
 
 These were introductory, hands-on exercises. The goal was to understand the purpose of the commands and manifests before moving into their detailed configuration and networking behavior.
 
-### Day 02 - Commands Practiced
+### Commands Practiced
 
 Kind installation and cluster setup:
 
@@ -193,7 +193,7 @@ docker images
 - Practiced checking namespaces, CronJobs, DaemonSets, Pods, and Pod placement across nodes.
 - Learned that not every YAML file is a Kubernetes resource manifest: Kind cluster configuration is passed to the Kind CLI, while Kubernetes resource manifests are generally applied with kubectl.
 
-### Day 03 - Commands Practiced
+### Commands Practiced
 
 Minikube cluster management:
 
