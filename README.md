@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Progress-Day%2003-6A5ACD?style=flat-square" alt="Progress: Day 03" />
+  <img src="https://img.shields.io/badge/Progress-Day%2004-6A5ACD?style=flat-square" alt="Progress: Day 03" />
 </p>
 
 ---
@@ -21,6 +21,7 @@
 | Day 01 | Kubernetes fundamentals, architecture, deployment models, Minikube installation, and Nginx Pod practice | Completed |
 | Day 02 | Kind setup, cluster and node management, kubectl, YAML manifests, imperative and declarative approaches, namespaces, and service ports | Completed |
 | Day 03 | Minikube command revision, Minikube vs Kind, imperative and declarative workflows, YAML manifests, and Kubernetes workload resources | Completed |
+| Day 04 | AWS EC2 two-node kubeadm cluster, containerd runtime, Calico CNI, Worker node joining, Task Manager Deployment, replicas, and NodePort access | Completed |
 
 ## Day 01 - Learning Summary
 
@@ -295,6 +296,153 @@ Important distinction:
 
 - **Challenge:** Confusing a Kind cluster configuration YAML with a Kubernetes resource manifest.
 - **Solution:** Clarified that Kind configuration is used with `kind create cluster --config`, while Kubernetes resources are managed with `kubectl apply -f`.
+
+## Day 04 - Learning Summary
+
+- Moved from local Kubernetes environments to a real multi-node cluster on AWS EC2.
+- Created two Ubuntu 24.04 EC2 instances in the same VPC and Security Group: one Control Plane (Master) and one Worker node.
+- Prepared both nodes for Kubernetes by disabling swap, loading the `overlay` and `br_netfilter` kernel modules, and enabling the required networking sysctl settings.
+- Installed and configured containerd as the container runtime, including enabling the systemd cgroup driver.
+- Installed Kubernetes components: kubeadm, kubelet, and kubectl (v1.37.2).
+- Initialized the Control Plane with kubeadm and configured the local kubeconfig file.
+- Installed Calico v3.33.0 as the CNI plugin to provide Pod networking.
+- Generated a kubeadm join command on the Control Plane and joined the Worker node to the cluster.
+- Verified that both nodes reached the `Ready` state.
+- Created a dedicated `kubernetes-cluster` Namespace and deployed the Task Manager application using the `bongodev/task-manager:latest` image with two replicas.
+- Exposed the Deployment through a NodePort Service on port `30080`.
+- Verified Pod placement, Service endpoints, and HTTP connectivity from the Control Plane to the Worker node.
+- Accessed the application from the local browser through an SSH tunnel connected to the Control Plane.
+
+### Commands Practiced
+
+Node preparation (run on both Master and Worker):
+
+```bash
+# Disable swap
+sudo swapoff -a
+
+# Configure kernel modules
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+# Configure Kubernetes networking requirements
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+sudo sysctl --system
+
+# Check loaded kernel modules
+lsmod | grep br_netfilter
+lsmod | grep overlay
+```
+
+Containerd runtime setup (run on both nodes):
+
+```bash
+# Generate the containerd configuration
+containerd config default | sudo tee /etc/containerd/config.toml
+
+# Enable the systemd cgroup driver
+sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+
+# Restart and verify containerd
+sudo systemctl restart containerd
+sudo systemctl status containerd
+containerd --version
+```
+
+Kubernetes Control Plane initialization (run only on Master):
+
+```bash
+# Initialize the Control Plane with the Pod network CIDR
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16
+
+# Configure kubectl access for the current user
+mkdir -p "$HOME"/.kube
+sudo cp -i /etc/kubernetes/admin.conf "$HOME"/.kube/config
+sudo chown "$(id -u)":"$(id -g)" "$HOME"/.kube/config
+
+# Generate the Worker join command
+kubeadm token create --print-join-command
+```
+
+Calico CNI installation (run on Master):
+
+```bash
+# Create the Calico custom resource definitions
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.33.0/manifests/v1_crd_projectcalico_org.yaml
+
+# Install the Tigera operator
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.33.0/manifests/tigera-operator.yaml
+
+# Apply the Calico custom resources
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.33.0/manifests/custom-resources.yaml
+
+# Check cluster nodes and system Pods
+kubectl get nodes
+kubectl get pods -A
+```
+
+Worker node join (run on Worker using the generated command from Master):
+
+```bash
+# Paste the generated kubeadm join command and include the containerd CRI socket
+sudo kubeadm join <MASTER_PRIVATE_IP>:6443 --token <TOKEN> --discovery-token-ca-cert-hash sha256:<HASH> --cri-socket unix:///run/containerd/containerd.sock
+```
+
+Application deployment and Service (run on Master):
+
+```bash
+# Create a Namespace
+kubectl create namespace kubernetes-cluster
+
+# Deploy two Task Manager replicas
+kubectl create deployment task-manager --image=bongodev/task-manager:latest --replicas=2 -n kubernetes-cluster
+
+# Expose the Deployment through a NodePort Service
+kubectl expose deployment task-manager --name=task-manager-service --type=NodePort --port=80 --target-port=80 -n kubernetes-cluster
+
+# Set the NodePort to 30080
+kubectl patch service task-manager-service -n kubernetes-cluster -p '{"spec":{"ports":[{"port":80,"targetPort":80,"nodePort":30080}]}}'
+
+# Inspect the cluster and application resources
+kubectl get nodes -o wide
+kubectl get pods -n kubernetes-cluster -o wide
+kubectl get svc -n kubernetes-cluster
+kubectl get endpoints -n kubernetes-cluster
+
+# Test the application through the Worker's private IP
+curl -I --connect-timeout 5 http://<WORKER_PRIVATE_IP>:30080
+```
+
+SSH tunnel for browser access (run on the local machine, not on an EC2 node):
+
+```bash
+# Forward local port 30080 through the Master to the Worker's private NodePort
+ssh -i <PATH_TO_KEY.pem> -L 30080:<WORKER_PRIVATE_IP>:30080 ubuntu@<MASTER_PUBLIC_IP>
+```
+
+Keep the SSH session open, then visit `http://localhost:30080` in the local browser.
+
+### Problems Faced & Solutions
+
+- **Challenge:** The Worker node could not initially communicate with the Kubernetes API Server.
+- **Solution:** Reviewed the AWS Security Group configuration and allowed the required Kubernetes API traffic (TCP port 6443) within the VPC.
+- **Challenge:** The Control Plane initially showed the `NotReady` status after `kubeadm init`.
+- **Solution:** Installed and configured Calico as the CNI plugin. After the networking components became healthy, both nodes reached the `Ready` state.
+- **Challenge:** The Task Manager was reachable through the Worker's private IP from the Control Plane, but direct access through the Worker's public IP timed out. The home public IP also changed during troubleshooting, making a fixed /32 Security Group allowlist unreliable.
+- **Solution:** Verified the NodePort internally and used an SSH local port-forward through the Master node. The application then became accessible at `http://localhost:30080` without opening the NodePort to the entire internet.
+- **Learning:** The local machine's Ubuntu version does not need to match the EC2 Ubuntu version for this SSH tunnel workflow; the important parts are the remote cluster configuration, network path, and SSH connectivity.
+
+---
 
 ---
 
