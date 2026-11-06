@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Progress-Day%2004-6A5ACD?style=flat-square" alt="Progress: Day 03" />
+  <img src="https://img.shields.io/badge/Progress-Day%2005-6A5ACD?style=flat-square" alt="Progress: Day 05" />
 </p>
 
 ---
@@ -22,6 +22,7 @@
 | Day 02 | Kind setup, cluster and node management, kubectl, YAML manifests, imperative and declarative approaches, namespaces, and service ports | Completed |
 | Day 03 | Minikube command revision, Minikube vs Kind, imperative and declarative workflows, YAML manifests, and Kubernetes workload resources | Completed |
 | Day 04 | AWS EC2 two-node kubeadm cluster, containerd runtime, Calico CNI, Worker node joining, Task Manager Deployment, replicas, and NodePort access | Completed |
+| Day 05 | DeployWatch on Amazon EKS, Docker image optimization, GitHub Actions CI/CD, AWS OIDC, Kubernetes RBAC, LoadBalancer, and live workload monitoring | Completed |
 
 ## Day 01 - Learning Summary
 
@@ -442,7 +443,76 @@ Keep the SSH session open, then visit `http://localhost:30080` in the local brow
 - **Solution:** Verified the NodePort internally and used an SSH local port-forward through the Master node. The application then became accessible at `http://localhost:30080` without opening the NodePort to the entire internet.
 - **Learning:** The local machine's Ubuntu version does not need to match the EC2 Ubuntu version for this SSH tunnel workflow; the important parts are the remote cluster configuration, network path, and SSH connectivity.
 
----
+## Day 05 - Learning Summary
+
+- Moved from a self-managed EC2 kubeadm cluster to a managed Kubernetes environment using Amazon EKS.
+- Deployed **DeployWatch**, a Flask-based Kubernetes workload monitoring dashboard, to the existing `full-stack-cluster` EKS cluster in the `ap-south-1` region.
+- Built and optimized the application container using `python:3.12-slim`, environment settings for Python containers, and a `.dockerignore` file to reduce unnecessary build context and image size.
+- Implemented a GitHub Actions CI/CD workflow that builds the DeployWatch Docker image, tags it with the Git commit SHA, pushes it to Docker Hub, updates the EKS Deployment, and verifies the rollout.
+- Configured GitHub Actions authentication to AWS using OIDC and an IAM role, avoiding long-lived AWS access keys in GitHub Actions.
+- Restricted the OIDC trust policy to the intended GitHub repository and the `main` branch.
+- Configured EKS access for the CI role and namespace-scoped Kubernetes RBAC so the pipeline can update only the `two-tier-app` Deployment in the `two-tier-ns` namespace.
+- Configured the dashboard to read Kubernetes resources using in-cluster configuration and a read-only ServiceAccount/RBAC access model.
+- Exposed the application through a Kubernetes LoadBalancer Service and accessed the dashboard using its AWS-provided external DNS hostname.
+- Verified the deployed image tag against the successful GitHub Actions commit and confirmed the new application Pod reached `1/1 Running`.
+- Verified the live dashboard reported 3 ready Deployments, 9 Running Pods, 5 Namespaces, and 100% Deployment health at the time of the check.
+- Explored Kubernetes Events to confirm the new image was pulled and the updated container was created and started.
+
+### Technology Stack
+
+- **Cloud & Kubernetes:** AWS, Amazon EKS, Kubernetes, AWS LoadBalancer
+- **Containerization:** Docker, Docker Hub, Python 3.12-slim
+- **CI/CD & Identity:** GitHub Actions, AWS IAM, GitHub OIDC
+- **Application:** Python, Flask, Kubernetes Python Client, HTML, CSS, JavaScript
+- **Access Control:** Kubernetes ServiceAccount, Role, RoleBinding, read-only RBAC, namespace-scoped deployment permissions
+
+### Commands Practiced
+
+Inspect DeployWatch workloads:
+
+```bash
+# List Pods with node and IP details
+kubectl get pods -n two-tier-ns -o wide
+
+# List Deployments and replica readiness
+kubectl get deployments -n two-tier-ns
+
+# List Services and the external LoadBalancer hostname
+kubectl get svc -n two-tier-ns
+
+# Inspect the application Deployment image
+kubectl get deployment two-tier-app -n two-tier-ns \
+  -o=jsonpath='{.spec.template.spec.containers[?(@.name=="two-tier-app")].image}{"\\n"}'
+
+# Verify the Deployment rollout
+kubectl rollout status deployment/two-tier-app -n two-tier-ns
+```
+
+### CI/CD Workflow
+
+1. GitHub Actions checks out the repository after a push to `main`.
+2. The workflow authenticates to AWS using GitHub OIDC and the dedicated IAM role.
+3. Docker Buildx builds the application image from `deploywatch-source`.
+4. The image is pushed to Docker Hub with the Git commit SHA as an immutable tag.
+5. The workflow updates the `two-tier-app` Deployment in the `two-tier-ns` namespace.
+6. Kubernetes performs the rolling update, and GitHub Actions waits for the rollout to complete.
+
+### Problems Faced & Solutions
+
+- **Challenge:** The first GitHub Actions run could not assume the AWS IAM role through OIDC and failed with `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
+- **Solution:** Inspected the GitHub OIDC provider and IAM role trust policy, identified the repository/branch subject mismatch, updated the trust policy to match the intended GitHub repository and `main` branch, and verified the next workflow run succeeded.
+- **Challenge:** The initial application Docker image was unnecessarily large.
+- **Solution:** Switched to the `python:3.12-slim` base image, reviewed the container build context, and added a `.dockerignore` file. The optimized image content size was approximately 79.2 MB compared with approximately 455 MB previously.
+- **Challenge:** The GitHub Actions deployment role needed Kubernetes permissions without receiving broad cluster-admin access.
+- **Solution:** Added an EKS access entry and mapped the role to a dedicated Kubernetes group. Created a namespace-scoped Role and RoleBinding that allow the CI identity to update only the `two-tier-app` Deployment in `two-tier-ns`.
+- **Challenge:** The dashboard needed access to Kubernetes resources while keeping monitoring access read-only.
+- **Solution:** Used a dedicated ServiceAccount with read-only RBAC permissions for the required Kubernetes resources.
+- **Challenge:** It was necessary to confirm that CI/CD deployed the newly built image rather than merely completing the workflow.
+- **Solution:** Compared the Deployment's active image tag with the GitHub commit SHA, checked the Pod status, and reviewed Kubernetes Events for successful image pull, container creation, and startup.
+
+### Key Learning
+
+This hands-on deployment connected containerization, CI/CD automation, cloud identity, Kubernetes access control, rolling updates, and workload monitoring into one end-to-end Amazon EKS workflow.
 
 ---
 
